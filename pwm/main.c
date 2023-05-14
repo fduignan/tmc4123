@@ -2,7 +2,11 @@
  * main.c
  */
 #include "tm4c123.h"
-
+#include <stdint.h>
+void delay(volatile uint32_t dly)
+{
+    while(dly--);
+}
 void initClock()
 {
     // TivaC has an on-board 16MHz crystal.
@@ -42,20 +46,63 @@ void initPWM()
     PWM1_PWM2GENB = (2 << 0) + (3 << 10); // Drive high on match, low on zero (gen b)
     PWM1_PWM3GENA = (2 << 0) + (3 << 6); // Drive high on match, low on zero (gen a)
     PWM1_PWM3GENB = (2 << 0) + (3 << 10); // Drive high on match, low on zero (gen b)
-    PWM1_PWM2CMPB = PWM1_PWM2LOAD/4; // 25% duty for red
-    PWM1_PWM3CMPA = (2*PWM1_PWM3LOAD)/4; // 50 % duty for green
-    PWM1_PWM3CMPB = (3*PWM1_PWM3LOAD)/4; // 75 % duty for blue
+    PWM1_PWM2CMPB = 0;
+    PWM1_PWM3CMPA = 0;
+    PWM1_PWM3CMPB = 0;
     PWM1_PWM2CTL |= (1 << 0); // enable pwm block
     PWM1_PWM3CTL |= (1 << 0); // enable pwm block
     PWM1_PWMSYNC = 0x0f; // synchronize all counters
+}
+void setRed(uint32_t Percent)
+{
+    Percent = (Percent * PWM1_PWM2LOAD)/100;
+    PWM1_PWM2CMPB = Percent;
+}
+void setBlue(uint32_t Percent)
+{
+    Percent = (Percent * PWM1_PWM3LOAD)/100;
+    PWM1_PWM3CMPA = Percent;
+}
+void setGreen(uint32_t Percent)
+{
+    Percent = (Percent * PWM1_PWM3LOAD)/100;
+    PWM1_PWM3CMPB = Percent;
 }
 void main()
 {
     initClock();
     initPWM();
+    uint32_t red=0;
+    uint32_t green=0;
+    uint32_t blue=0;
 
     while(1)
     {
+
+        while(red < 100)
+        {
+            setRed(red);
+            red++;
+            delay(100000);
+        }
+
+        while(green < 100)
+        {
+            setGreen(green);
+            green++;
+            delay(100000);
+        }
+
+        while(blue < 100)
+        {
+            setBlue(blue);
+            blue++;
+            delay(100000);
+        }
+        red = 0;
+        green = 0;
+        blue = 0;
+
     }
 }
 
